@@ -7,6 +7,10 @@ import { Label, Pie, PieChart } from "recharts"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { DateRange } from "react-day-picker"
+import { api } from "@/services/axios"
+import { DataOrderType } from "@/types"
+import { useQuery } from "@tanstack/react-query"
+import { useSession } from "@/context/auth.context"
 
 // Type for our chart data
 interface StatusData {
@@ -34,34 +38,33 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-const generateStatusData = (dateRange: DateRange): StatusData[] => {
+async function generateStatusData(userId: string, dateRange?: DateRange): Promise<StatusData[]> {
   if (!dateRange?.from || !dateRange?.to) {
     return []
   }
 
+  const response = await api.get(`contracts?createdDateIn=${dateRange.from.toISOString()}&createdDateOut=${dateRange.to.toISOString()}&userId=${userId}`);
+  const contracts: DataOrderType[] = response.data;
 
-  const seed = dateRange.from.getTime() + (dateRange.to.getTime() % 10000)
-  const getRandom = (min: number, max: number, seed: number) => {
-    const x = Math.sin(seed) * 10000
-    const rand = x - Math.floor(x)
-    return Math.floor(rand * (max - min + 1)) + min
-  }
+  const conected = contracts.filter((contract) => contract.status === "conectado").length;
+  const pending = contracts.filter((contract) => contract.status === "pendente").length;
+  const canceled = contracts.filter((contract) => contract.status === "cancelado").length;
 
-  // Generate data for each status
+
   return [
     {
       status: "instaladas",
-      quantidade: getRandom(80, 150, seed + 1),
+      quantidade: conected,
       fill: "var(--color-instaladas)",
     },
     {
       status: "pendentes",
-      quantidade: getRandom(80, 150, seed + 1),
+      quantidade: pending,
       fill: "var(--color-pendentes)",
     },
     {
       status: "canceladas",
-      quantidade: getRandom(50, 120, seed + 2),
+      quantidade: canceled,
       fill: "var(--color-canceladas)",
     },
   ]
@@ -72,16 +75,15 @@ interface PieChartByDateProps {
 }
 
 export function DataPieChart({ dateRange }: PieChartByDateProps) {
-  const [chartData, setChartData] = React.useState<StatusData[]>([])
+  const { user } = useSession();
 
-
-  React.useEffect(() => {
-    setChartData(generateStatusData(dateRange!))
-  }, [dateRange])
-
+  const { data: chartData } = useQuery<StatusData[]>({
+    queryKey: ["chartData"],
+    queryFn: () => generateStatusData(user!.id, dateRange),
+  })
 
   const total = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.quantidade, 0)
+    return chartData?.reduce((acc, curr) => acc + curr.quantidade, 0)
   }, [chartData])
 
   const formatDateRange = () => {
@@ -102,7 +104,7 @@ export function DataPieChart({ dateRange }: PieChartByDateProps) {
     if (active && payload && payload.length) {
       const data: StatusData = payload[0].payload;
       const percentage = total ? ((data.quantidade / total) * 100).toFixed(1) : "0.0";
-      console.log(data)
+
       return (
         <div className="bg-white text-slate-500 p-2 border rounded shadow w-[180px]">
           <span className="flex items-center gap-1 mb-1">
@@ -134,7 +136,7 @@ export function DataPieChart({ dateRange }: PieChartByDateProps) {
                     return (
                       <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                         <tspan x={viewBox.cx} y={viewBox.cy} className="fill-slate-600 text-2xl font-bold tracking-tighter">
-                          {total.toLocaleString("pt-BR")}
+                          {total!.toLocaleString("pt-BR")}
                         </tspan>
                         <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 24} className="fill-muted-foreground tracking-tighter">
                           Total

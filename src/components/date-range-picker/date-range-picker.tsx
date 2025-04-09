@@ -19,8 +19,8 @@ export function DateRangePicker({ date, setDate }: DateRangePickerProps) {
   return (
       <Popover modal>
         <PopoverTrigger 
-            className="w-[180px] cursor-pointer justify-start text-left font-normal text-xs text-slate-600
-            p-2 rounded-sm bg-white border-1 border-slate-400 flex items-center gap-2 hover:bg-slate-50 duration-200">
+            className="w-[200px] h-8 cursor-pointer justify-start text-left font-normal text-xs text-slate-600
+            p-2 rounded-sm  border-1 border-slate-400 flex items-center gap-2 hover:bg-slate-50 duration-200">
             <CalendarIcon size={16}/>
             {date?.from ? (
               date.to ? (

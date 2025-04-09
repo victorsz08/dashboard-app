@@ -22,4 +22,11 @@ export type DataOrderType = {
     userId: string;
     createdAt: Date;
     updatedAt: Date;
+};
+
+export type UserDataType = {
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
 }

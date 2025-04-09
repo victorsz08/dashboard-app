@@ -17,7 +17,7 @@ export type CardOverviewProps = {
     value: number;
     icon: LucideIcon;
     type: ValueCardProps;
-    trending: number;
+    trending?: number;
     help?: string;
 };
 
@@ -52,11 +52,12 @@ export function CardOverview(props: CardOverviewProps) {
                 <span className="text-2xl font-bold tracking-tighter text-slate-700">
                     {valueFormatted}
                 </span>
+               {props.trending &&
                 <span className={`${props.trending > 0 ? "text-green-700 bg-green-100"  : "text-red-700 bg-red-100"}
                     rounded-lg text-[10px] font-medium flex items-center gap-1 w-fit p-1`}>
                     {props.trending > 0 ? `+${props.trending}%` : `${props.trending}%`}
                     {props.trending > 0 ? <TrendingUp size={12}/> : <TrendingDown size={12}/>}
-                </span>
+                </span>}
             </CardContent>
             <CardFooter>
                 <span className="text-[12px] text-slate-400 font-light tracking-tighter">
